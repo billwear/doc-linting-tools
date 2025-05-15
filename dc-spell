@@ -1,0 +1,10 @@
+#!/bin/bash
+
+aspell -p plist.per list < $1 | sort -u | tee /tmp/misspelled.txt | grep -q .
+if grep -q . /tmp/misspelled.txt; then
+  echo "❌ Misspelled words found!"
+  cat /tmp/misspelled.txt
+  exit 1
+else
+  echo "✅ Spelling check: All clear!"
+fi

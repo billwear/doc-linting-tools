@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if proselint "$1" | grep -q .; then
+  echo "❌ Proselint found issues in $file"
+  proselint "$1"
+  exit 1
+else
+  echo "✅ Proselint passed — no issues in $1"
+  exit 0
+fi

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Convert Markdown to temporary HTML
+html_tmp=$(mktemp /tmp/linkcheck-XXXX.html)
+pandoc "$file" -o "$html_tmp"
+# Run linkchecker and filter out good links
+broken_links=$(linkchecker "$html_tmp" --no-status | grep -v 'OK$')
+# Clean up temp file
+rm "$html_tmp"
+# Check result
+if [ -n "$broken_links" ]; then
+  echo "❌ Broken links found:"
+  echo "$broken_links"
+  exit 1
+else
+  echo "✅ All links are valid."
+  exit 0
+fi

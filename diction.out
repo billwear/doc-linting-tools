@@ -1,0 +1,173 @@
+sampledoc:1.1-1.84: [Prior to] deployment, MAAS machines [can] be customized in [a number of] ways, including:
+
+sampledoc:8.1-8.133: In MAAS v3.2+, machines [can] be modified post-deployment — [while] running — by swapping hardware or adjusting the VM from the host.
+
+sampledoc:17.1-17.147: During deployment, you [can] enable periodic hardware sync, allowing deployed machines to update BMC settings and tags in real time as changes occur.
+
+sampledoc:23.1-23.88: MAAS does not support deploying ZFS beyond the root device; doing [so] is not recommended.
+
+sampledoc:35.1-35.153: In the Flat layout, the entire boot disk is [utilized] to create a single root partition, formatted with the ext4 filesystem and mounted at the root (`/`).
+
+sampledoc:35.155-35.262: For systems [utilizing] UEFI, a separate EFI [System] Partition (ESP) is created to [facilitate] the boot process.
+
+sampledoc:39.3-45.6: Device | Size | [Type] | Filesystem | Mount Point | |--------|-------------|----------------|------------|-------------| | sda | - | disk | - | - | | sda1 | 512 MB | partition | FAT32 | /boot/efi | | sda2 | Remaining | partition | ext4 | / | *Note:
+
+sampledoc:45.8-49.81: If the [system] is not using UEFI, the EFI partition (`sda1`) is omitted, and the root partition (`sda2`) occupies the entire disk.* When setting up the Flat layout in MAAS, the following options [can] be customized:
+
+sampledoc:55.59-55.108: Default is 100%, [utilizing] the entire root device.
+
+sampledoc:69.1-69.82: [While] the Flat layout offers simplicity, it [may] not be suitable for all scenarios:
+
+sampledoc:71.3-71.84: Does not support advanced features [like] logical volume management or disk caching.
+
+sampledoc:75.3-75.102: [May] not meet the needs of complex or large-scale deployments requiring [sophisticated] storage setups.
+
+sampledoc:77.1-77.130: For deployments necessitating advanced storage configurations, [consider] using the LVM, bcache, or custom layouts provided by MAAS.
+
+sampledoc:83.86-83.214: LVM supports logical volumes that span multiple disks, [which] makes it [easy] to resize volumes and move data with minimal downtime.
+
+sampledoc:85.1-85.149: In the context of MAAS, the LVM layout offers [very] efficient storage management, with features [like] backup snapshots and dynamic resizing of volumes.
+
+sampledoc:91.3-91.66: A 512 MB EFI [System] Partition (ESP) is created for UEFI systems.
+
+sampledoc:101.3-110.80: Device | Size | [Type] | Filesystem | Mount Point | |--------|-------------|----------------|------------|-------------| | sda | - | disk | - | - | | sda1 | 512 MB | partition | FAT32 | /boot/efi | | sda2 | Remaining | partition | lvm-pv(vgroot) | - | | lvroot | Remaining | logical volume | ext4 | / | When setting up the LVM layout in MAAS, the following options [can] be customized:
+
+sampledoc:126.3-126.62: Deployments where storage requirements [may] change over time.
+
+sampledoc:130.1-130.80: [While] the LVM layout offers flexibility, it [may] introduce additional complexity:
+
+sampledoc:132.3-132.66: Requires understanding of LVM concepts for [effective] management.
+
+sampledoc:134.3-134.58: [May] not be necessary for simple or static storage needs.
+
+sampledoc:136.1-136.198: For scenarios requiring advanced storage configurations, such as combining multiple disks or implementing caching mechanisms, [consider] using custom layouts or other storage options provided by MAAS.
+
+sampledoc:144.1-144.130: In the bcache layout, the boot disk serves as the backing device, [while] the smallest SSD-tagged block device is used as the cache.
+
+sampledoc:148.3-159.83: Device | Size | [Type] | Filesystem | Mount Point | |--------|-------------|----------------|------------|-------------| | sda | - | disk | - | - | | sda1 | 512 MB | partition | FAT32 | /boot/efi | | sda2 | Remaining | partition | bc-backing | - | | sdb | - | disk (SSD) | - | - | | sdb1 | 100% of sdb | partition | bc-cache | - | | bcache0| per sda2 | disk | ext4 | / | When setting up the bcache layout in MAAS, the following options [can] be customized:
+
+sampledoc:165.44-165.93: Default is 100%, [utilizing] the entire root device.
+
+sampledoc:173.20-173.69: [Whether] to create a partition on the cache device.
+
+sampledoc:187.3-187.72: The bcache layout requires at least [one] SSD-tagged device to function.
+
+sampledoc:195.167-195.267: MAAS supports both software and hardware RAID configurations, each with [its] own setup considerations.
+
+sampledoc:199.86-199.224: Users [can] define RAID levels (such as RAID 0, 1, 5) through the MAAS CLI or API, specifying parameters [like] member disks and spare devices.
+
+sampledoc:199.226-199.335: For instance, a user [can] create a RAID 1 array for mirroring data across two disks, enhancing fault tolerance.
+
+sampledoc:203.1-203.128: For systems equipped with hardware RAID controllers, MAAS [can] integrate their configurations using custom commissioning scripts.
+
+sampledoc:203.130-203.322: These scripts [can] [utilize] vendor-specific tools (e.g., `storcli` for Broadcom LSI controllers or `hpssacli` for HP Smart Array controllers) to set up RAID arrays during the commissioning [phase].
+
+sampledoc:203.324-203.445: It is important to [ensure] that these tools are compatible with the commissioning environment, [which] typically runs Ubuntu.
+
+sampledoc:205.1-205.220: In scenarios where proprietary RAID management tools are [only] available for other operating systems (e.g., RHEL), users [may] need to explore [alternative] methods or consult vendor documentation for compatibility solutions.
+
+sampledoc:209.119-209.180: Users need [only] enable UEFI — no [further] action is required.
+
+sampledoc:209.182-209.304: [However], UEFI must remain enabled throughout the machine’s life-cycle; disabling it after enlistment will cause failures.
+
+sampledoc:213.1-213.159: Once the initial storage layout has been configured on a machine, you [can] [perform] many operations to view and adjust the entire storage layout for the machine.
+
+sampledoc:213.161-213.215: In MAAS [there are] two different types of block devices.
+
+sampledoc:219.3-221.108: Virtual* A virtual block device is a block device that is exposed by the Linux kernel when an operation is [performed].
+
+sampledoc:221.110-221.243: Almost all the operations on a physical block device [can] be [performed] on a virtual block device, such as a RAID device exposed as md0.
+
+sampledoc:229.1-229.59: [There are] three restrictions for the storage configuration:
+
+sampledoc:243.1-243.182: Once MAAS provisions a machine with block devices, via a layout or administrator customization, a regular user [can] modify the resulting storage configuration at the filesystem level.
+
+sampledoc:247.66-247.138: Users [can] set a default configuration or select from three erasure types:
+
+sampledoc:250.5-250.115: Secure erasure -Secure erase works [like] Standard erase but is much faster since the disk's firmware handles it.
+
+sampledoc:250.117-250.197: [However], some disks—especially SCSI, SAS, and FC—[may] not support this method.
+
+sampledoc:251.5-251.106: Quick erasure - Same as Standard erase but [only] targets the first 1 MB and the last 1 MB of each disk.
+
+sampledoc:251.108-251.224: This removes the partition tables [and/or] superblock from the disk, making data recovery difficult but not impossible.
+
+sampledoc:262.1-262.47: Preseeding in MAAS [can] be achieved in two ways:
+
+sampledoc:264.5-264.181: Curtin](https://launchpad.net/curtin), a preseeding [system] similar to Kickstart or d-i (Debian Installer), applies customization during [operating system] (OS) image installation.
+
+sampledoc:266.5-266.116: Cloud-init](https://launchpad.net/cloud-init), a [system] for setting up machines immediately after instantiation.
+
+sampledoc:270.119-270.219: These templates, located in /[etc]/maas/preseeds/, create configuration files that guide machine setup.
+
+sampledoc:274.193-274.295: Each template uses a filename prefix that corresponds to a particular [phase] of MAAS machine deployment:
+
+sampledoc:278.1-278.178: The [Tempita](https://raw.githubusercontent.com/ravenac95/tempita/master/docs/index.txt) template files are found in the `/[etc]/maas/preseeds/` directory on the region controller.
+
+sampledoc:278.180-278.282: Each template uses a filename prefix that corresponds to a particular [phase] of MAAS machine deployment:
+
+sampledoc:280.9-286.74: [Phase] | Filename prefix | |:-----------------|:-----------------------------------------------| | Enlistment | enlist | | Commissioning | commissioning | | Installation | curtin ([Curtin](https://launchpad.net/curtin)) | Additionally, the template for each [phase] typically consists of two files.
+
+sampledoc:286.76-286.235: The first is a higher-level file that often contains little more [than] a URL or a link to [further] credentials, [while] a second file contains the executable logic.
+
+sampledoc:288.1-288.149: The `enlist` template, for example, contains [only] minimal variables, whereas `enlist_userdata` includes both user variables and initialization logic.
+
+sampledoc:290.1-290.72: Tempita's inheritance mechanism is the reverse of what you [might] [expect].
+
+sampledoc:290.74-290.221: Inherited files, such as `enlist_userdata`, become the new template [which] [can] then reference variables from the higher-level file, such as `enlist`.
+
+sampledoc:294.63-294.245: This order allows for base configuration options and parameters to be overridden based on a combination of [operating system], architecture, sub-architecture, release, and machine name.
+
+sampledoc:296.1-296.50: Some earlier versions of MAAS [only] support Ubuntu.
+
+sampledoc:296.52-296.179: If the machine [operating system] is Ubuntu, then filenames without `{OS}` will also be tried, to maintain backward compatibility.
+
+sampledoc:314.1-314.69: The machine needs to be the machine name, [as shown in] the web UI URL.
+
+sampledoc:316.1-316.119: The prefix [can] be either `enlist`, `[enlist]_userdata`, `commissioning`, `curtin`, `[curtin]_userdata` or `preseed_master`.
+
+sampledoc:316.121-316.188: Alternatively, you [can] omit the prefix and the following underscore.
+
+sampledoc:318.1-318.180: For example, to create a generic configuration template for Ubuntu 16.04 Xenial running on an x64 architecture, the file [would] need to be called `ubuntu_amd64_generic_xenial_node`.
+
+sampledoc:320.1-320.131: To create the equivalent template for curtin_userdata, the file [would] be called `curtin_userdata_ubuntu_amd64_generic_xenial_node`.
+
+sampledoc:327.1-327.60: MAAS supports four types of kernels for [its] Ubuntu machines:
+
+sampledoc:338.1-338.35: MAAS denotes a GA kernel [like] this:
+
+sampledoc:340.165-340.282: [As per] Ubuntu policy, a GA kernel will never have [its] major version upgraded until the underlying release is upgraded.
+
+sampledoc:344.42-344.131: If an Ubuntu host runs an older kernel, it is unlikely that MAAS [can] support the hardware.
+
+sampledoc:349.1-349.139: [There is] the notion of an HWE *stack*, [which] refers to the window manager and kernel when the Ubuntu host is running a desktop environment.
+
+sampledoc:352.1-352.81: Note that these back-ported/HWE kernels are [only] available for LTS releases (e.g.
+
+sampledoc:352.83-352.104: Trusty, Xenial, [etc.]).
+
+sampledoc:354.1-354.94: Before MAAS 2.1 on Xenial, HWE kernels are [referred] to by the notation `hwe-<release letter>`.
+
+sampledoc:354.96-354.171: [So], to install the Yakkety HWE kernel on Xenial, the `hwe-y` kernel is used.
+
+sampledoc:354.173-354.281: By default, when using the web UI, MAAS imports all available HWE kernels along with [its] generic boot images.
+
+sampledoc:354.283-354.365: [So] if you are importing Trusty images, then the following HWE kernels are included:
+
+sampledoc:356.70-356.146: The following [is used to] [refer] to the latest HWE kernel available for Xenial:
+
+sampledoc:364.1-364.39: MAAS denotes the edge kernel [like] this:
+
+sampledoc:366.1-366.57: [So] 'hwe-16.04' is [considered] older [than] 'hwe-16.04-edge'.
+
+sampledoc:382.110-382.172: [However], it is possible to tell MAAS to use a different kernel.
+
+sampledoc:382.174-382.235: Via the Web UI, MAAS [can] help you choose [one] of these kernels.
+
+sampledoc:382.237-382.287: [There are] three different contexts for your choice:
+
+sampledoc:390.1-390.120: MAAS [can] specify kernel boot options to machines on both a global basis (UI and CLI) and a per-machine basis (CLI-[only]).
+
+sampledoc:390.122-390.323: A full catalog of available options [can] be found in the [Linux kernel parameters list](https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html) at [kernel.org](https://www.kernel.org).
+
+122 phrases in 198 sentences found.

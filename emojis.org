@@ -1,0 +1,28 @@
+* Emoji Palette
+
+** Flow / Logic
+🧠 → 💭 → ✍️ → 📦 → 📤 → 🚀 → 🎯
+
+** Status
+⏳ In Progress    ✅ Done     ❌ Blocked     🔄 Retry
+
+** Edits
+📝 Draft     ✂️ Cut     🧹 Clean     🪄 Polish
+
+** Feedback
+👍 Good     👎 Bad     🤔 Hmm     💡 Idea
+
+** Tools
+🛠 Fix     🔧 Config     ⚙️ System
+
+** Docs
+📄 Page     🔗 Link     🔍 Inspect     📌 Pin
+
+** Visual
+✨ Style     📊 Chart     🎨 Design     📷 Image
+
+** Navigation
+➡️ Next     ⬅️ Prev     ⬆️ Up     ⬇️ Down
+
+** Emotion (why not?)
+😅 lol     😐 meh     😡 rage     🤓 nerd

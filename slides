@@ -1,0 +1,78 @@
+### Slide 1:
+🎯 Can We Lint MAAS Docs Using Only CLI Tools?
+.
+**Yes — with a clean rule set and some classic Unix muscle.**
+
+### Slide 2:
+✅ Editorial Rules
+.
+* American spelling
+* Clear, non-conversational tone
+* Minimal, valid links
+* No bold/italics abuse, ALL CAPS, or "^" links
+
+### Slide 3:
+🔨 Tools used
+.
+* Spelling: `aspell`
+* Style & structure: `diction`, `style`
+* Prose: `proselint`
+* Link validity: `linkchecker` + `pandoc`
+
+### Slide 4:
+🧪 Spelling Check
+.
+aspell -p plist.per list < $file | sort -u | tee /tmp/misspelled.txt | grep -q .
+.
+* Uses a project wordlist
+* Flags unique misspellings
+* Exits 1 if any found
+
+### Slide 5:
+✂ `diction`: Wordiness & Passive Phrases
+.
+diction $file
+* Flags awkward phrasing
+* Not scriptable — use while drafting
+
+### Slide 6:
+📊 `style`: Readability Metrics
+.
+output=$(style "$file")
+flesch=$(echo "$output" | awk '/Flesch/ {split($4,a,"/"); print a[1]}')
+passive=$(echo "$output" | awk '/passive/ {gsub("%",""); print int($1)}')
+.
+* Fails if:
+  * Flesch < 64
+  * Passive > 19%
+
+### Slide 7:
+🧹 `proselint`: Clarity & Style Checks
+.
+if proselint $file | grep -q .; then
+  echo "❌ Issues found"
+  exit 1
+fi
+.
+* Fails on stylistic issues
+* Silent on success
+
+### Slide 8:
+🔗 `linkchecker`: Validating Hyperlinks
+.
+html=$(mktemp); pandoc "$file" -o "$html"
+broken=$(linkchecker "$html" --no-status | grep -v OK$)
+[ -n "$broken" ] && echo "$broken" && exit 1
+.
+* Converts to HTML first
+* Exits on broken links
+
+### Slide 9:
+🧪 Lint Runners (`dcheck` family)
+.
+* `dc-spell` → Spelling
+* `dc-style` → Flesch & passive
+* `dc-proselint` → Tone/style
+* `dc-linkchecker` → Links
+.
+Each one is single-responsibility. Use them in pre-commit or CI.

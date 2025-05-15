@@ -1,0 +1,19 @@
+#!/bin/bash
+
+output=$(style "$1")
+flesch=$(echo "$output" | awk '/Flesch Index/ { split($3, a, "/"); print a[1] }')
+echo "📊 Flesch score: $flesch"
+passive=$(echo "$output" | awk '/passive sentences/ {gsub("%",""); print int($1)}')
+# Float comparison using bc
+if (( $(echo "$flesch > 64.0" | bc -l) )); then
+  echo "✅ Flesch score is sufficient — pass."
+else
+  echo "❌ Flesch score too low — fail."
+  exit 1
+fi
+if [ "$passive" -gt 19 ]; then
+  echo "❌ Passive usage is $passive% — too high."
+  exit 1
+else
+  echo "✅ Passive usage is $passive%"
+fi
