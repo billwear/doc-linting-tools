@@ -1,54 +1,14 @@
 #!/bin/bash
 
-aspell -p plist.per list < $1 | sort -u | tee /tmp/misspelled.txt | grep -q .
-if grep -q . /tmp/misspelled.txt; then
-  echo "❌ Misspelled words found!"
-  cat /tmp/misspelled.txt
-  exit 1
-else
-  echo "✅ Spelling check: All clear!"
-fi
+set -e
 
-output=$(style "$1")
-flesch=$(echo "$output" | awk '/Flesch Index/ { split($3, a, "/"); print a[1] }')
-echo "📊 Flesch score: $flesch"
-passive=$(echo "$output" | awk '/passive sentences/ {gsub("%",""); print int($1)}')
-# Float comparison using bc
-if (( $(echo "$flesch > 64.0" | bc -l) )); then
-  echo "✅ Flesch score is sufficient — pass."
-else
-  echo "❌ Flesch score too low — fail."
-  exit 1
-fi
-if [ "$passive" -gt 19 ]; then
-  echo "❌ Passive usage is $passive% — too high."
-  exit 1
-else
-  echo "✅ Passive usage is $passive%"
-fi
+dc-spell "$1"
+dc-linkchecker "$1"
+dc-proselint "$1"
+dc-style "$1"
 
-if proselint "$1" | grep -q .; then
-  echo "❌ Proselint found issues in $file"
-  proselint "$1"
-  exit 1
-else
-  echo "✅ Proselint passed — no issues in $1"
-  exit 0
-fi
-
-# Convert Markdown to temporary HTML
-html_tmp=$(mktemp /tmp/linkcheck-XXXX.html)
-pandoc "$file" -o "$html_tmp"
-# Run linkchecker and filter out good links
-broken_links=$(linkchecker "$html_tmp" --no-status | grep -v 'OK$')
-# Clean up temp file
-rm "$html_tmp"
-# Check result
-if [ -n "$broken_links" ]; then
-  echo "❌ Broken links found:"
-  echo "$broken_links"
-  exit 1
-else
-  echo "✅ All links are valid."
-  exit 0
-fi
+# sudo apt install aspell
+# sudo apt install diction
+# sudo apt install python3-proselint
+# sudo apt install pandoc
+# sudo apt install linkchecker

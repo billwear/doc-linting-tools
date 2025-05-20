@@ -1,11 +1,11 @@
-Prior to deployment, MAAS machines can be customized in a number of ways, including:
+Customize MAAS machines for deployment by changing:
 
 - machine storage.
 - commissioning and deployment configurations (known as "pre-seeding").
 - custom Ubuntu kernels.
 - kernel boot options. 
 
-In MAAS v3.2+, machines can be modified post-deployment — while running — by swapping hardware or adjusting the VM from the host. This enables you to:
+In MAAS v3.2+, deployed machines can be modified while running:
 
 - add or remove disks
 - add or remove network interfaces
@@ -14,25 +14,23 @@ In MAAS v3.2+, machines can be modified post-deployment — while running — by
 
 You cannot make these changes to a deployed machine using MAAS.
 
-During deployment, you can enable periodic hardware sync, allowing deployed machines to update BMC settings and tags in real time as changes occur.
+Enable hardware sync so that ddeployed machines can update changes in real time.
 
 ## Customizing storage 
 
-MAAS configures machine storage, supporting traditional partitioning, LVM, RAID, bcache, and UEFI boot.
+MAAS configures machine storage.  It supports traditional partitioning, LVM, RAID, bcache, and UEFI boot. MAAS does not support deploying ZFS beyond the root device. Doing so is not recommended.
 
-MAAS does not support deploying ZFS beyond the root device; doing so is not recommended.
-
-Storage depends on physical disks but is configured using a layout, applied during commissioning. Modify storage at the filesystem level post-deployment and choose from various disk erasure options when releasing a machine.
+Storage depends on physical disks. Configure storage by applying a layout during commissioning. Modify deployed machine storage at the filesystem level.  Choose from various disk erasure options when releasing a machine.
 
 MAAS supports storage setup for CentOS and RHEL, including RAID, LVM, and custom partitioning (excluding ZFS and bcache). This requires an updated Curtin version, [available via PPA](https://launchpad.net/ubuntu/+source/curtin).
 
 ### Flat storage layout
 
-The flat storage layout in MAAS offers a straightforward disk configuration, ideal for environments where simplicity and ease of deployment are paramount.
+MAAS flat storage layout offers simple disk configuration.  The glat layout is ideal for simple, easy deployments.
 
 #### Overview
 
-In the Flat layout, the entire boot disk is utilized to create a single root partition, formatted with the ext4 filesystem and mounted at the root (`/`). For systems utilizing UEFI, a separate EFI System Partition (ESP) is created to facilitate the boot process.
+Flat layout creates a single, ext4 root partition on the boot disk. A separate EFI System Partition (ESP) is created to boot UEFI systems.
 
 #### Partition Scheme
 
@@ -42,11 +40,11 @@ In the Flat layout, the entire boot disk is utilized to create a single root par
 | sda1   | 512 MB      | partition      | FAT32      | /boot/efi   |
 | sda2   | Remaining   | partition      | ext4       | /           |
 
-*Note: If the system is not using UEFI, the EFI partition (`sda1`) is omitted, and the root partition (`sda2`) occupies the entire disk.*
+*Note: For non-UEFI systems, `sda1` is skipped, and the root partition (`sda2`) occupies the whole disk.*
 
 #### Configuration options
 
-When setting up the Flat layout in MAAS, the following options can be customized:
+The MAAS Flat layout can be customized:
 
 - `boot_size`: Defines the size of the boot partition. Default is 0, placing `/boot` on the root filesystem.
 

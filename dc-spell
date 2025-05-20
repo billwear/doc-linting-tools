@@ -1,6 +1,23 @@
 #!/bin/bash
 
-aspell -p plist.per list < $1 | sort -u | tee /tmp/misspelled.txt | grep -q .
+file="$1"
+
+if [ ! -f "$file" ]; then
+  echo "❌ File not found: $file"
+  exit 1
+fi
+
+# Remove fenced code blocks before passing to aspell
+cleaned=$(awk '
+  BEGIN { in_code=0 }
+  $0 ~ /^```[[:space:]]*/ { in_code = !in_code; next }
+  !in_code { print }
+' "$file")
+
+# Run aspell on the cleaned text
+echo "$cleaned" | aspell -p plist.per list | sort -u | tee /tmp/misspelled.txt | grep -q .
+
+# Report results
 if grep -q . /tmp/misspelled.txt; then
   echo "❌ Misspelled words found!"
   cat /tmp/misspelled.txt

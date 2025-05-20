@@ -1,16 +1,38 @@
 #!/bin/bash
 
-output=$(style "$1")
+file="$1"
+
+if [ ! -f "$file" ]; then
+  echo "❌ File not found: $file"
+  exit 1
+fi
+
+# Remove Markdown code blocks and feed to style
+output=$(awk '
+  BEGIN { in_code=0 }
+  /^```/ { in_code = !in_code; next }
+  !in_code { print }
+' "$file" | style)
+
+# Extract Flesch score
 flesch=$(echo "$output" | awk '/Flesch Index/ { split($3, a, "/"); print a[1] }')
 echo "📊 Flesch score: $flesch"
+
+# Extract passive voice percentage
 passive=$(echo "$output" | awk '/passive sentences/ {gsub("%",""); print int($1)}')
-# Float comparison using bc
+
+# Check Flesch score
 if (( $(echo "$flesch > 64.0" | bc -l) )); then
   echo "✅ Flesch score is sufficient — pass."
 else
   echo "❌ Flesch score too low — fail."
+  echo ""
+  echo "📎 Sentence info from style output:"
+  echo "$output" | awk '/sentence info:/ {show=1; print; next} /word usage:/ {show=0} show'
   exit 1
 fi
+
+# Check passive percentage
 if [ "$passive" -gt 19 ]; then
   echo "❌ Passive usage is $passive% — too high."
   exit 1

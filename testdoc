@@ -1,0 +1,7 @@
+You can install the tool with a single command. Open your terminal and type sudo apt install exampletool. After that, you’ll see it listed when you run exampletool --help.
+
+Once installed, the tool checks your files for common problems. These include broken links, missing punctuation, and long sentences. If it finds anything, it prints a short message to help you fix it.
+
+Most users run the tool once a day. You can do this by adding a command to your daily workflow or shell script. This keeps your content clean and saves time during reviews.
+
+To learn more, visit the project’s website. It offers examples, tips, and updates. You can also check the built-in help for quick guidance.

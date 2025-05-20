@@ -1,18 +1,57 @@
 #!/bin/bash
+# set -e
 
-# Convert Markdown to temporary HTML
+file="$1"
+
+# Ensure input file is provided
+if [ -z "$file" ]; then
+  echo "❌ Usage: $0 <markdown-file>"
+  exit 1
+fi
+
+# Check that file exists
+if [ ! -f "$file" ]; then
+  echo "❌ Error: File '$file' not found."
+  exit 1
+fi
+
+# Create temp HTML file
 html_tmp=$(mktemp /tmp/linkcheck-XXXX.html)
+
+echo "📄 Converting Markdown to HTML..."
 pandoc "$file" -o "$html_tmp"
-# Run linkchecker and filter out good links
-broken_links=$(linkchecker "$html_tmp" --no-status | grep -v 'OK$')
+
+echo "🔗 Running linkchecker (this may take a few seconds)..."
+link_output=$(linkchecker "$html_tmp" --no-status --check-extern)
+
 # Clean up temp file
 rm "$html_tmp"
-# Check result
-if [ -n "$broken_links" ]; then
+
+# Show raw output (optional: comment out if too noisy)
+# echo "$link_output"
+
+# Extract redirects
+redirects=$(awk '/\[http-redirected\]/, /status: [0-9]+ \./' "$link_output")
+
+# Extract errors
+errors=$(grep 'Result *Error' "$link_output" || true)
+
+# Summarize
+if [ -n "$redirects" ]; then
+  echo ""
+  echo "⚠️ Redirects detected (not failures):"
+  echo "$redirects"
+fi
+
+if [ -n "$errors" ]; then
+  echo ""
   echo "❌ Broken links found:"
-  echo "$broken_links"
+  echo "$errors"
   exit 1
 else
+  echo ""
   echo "✅ All links are valid."
   exit 0
 fi
+
+

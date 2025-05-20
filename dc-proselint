@@ -1,10 +1,44 @@
 #!/bin/bash
 
-if proselint "$1" | grep -q .; then
+file="$1"
+
+if [ ! -f "$file" ]; then
+  echo "❌ File not found: $file"
+  exit 1
+fi
+
+# Strip fenced code blocks and keep numbered output
+cleaned=$(awk '
+  BEGIN { in_code=0 }
+  $0 ~ /^```/ { in_code = !in_code; next }
+  !in_code { print }
+' "$file")
+
+# Save cleaned text to a temp file so we can map line numbers
+tmp_cleaned=$(mktemp /tmp/proselint-cleaned-XXXX.txt)
+echo "$cleaned" > "$tmp_cleaned"
+
+# Run proselint on the cleaned text file
+proselint_output=$(proselint "$tmp_cleaned")
+
+if [ -n "$proselint_output" ]; then
   echo "❌ Proselint found issues in $file"
-  proselint "$1"
+  echo "$proselint_output" | while IFS= read -r line; do
+    # Print the original proselint message
+    echo "$line"
+    
+    # Extract line number (e.g., stdin:23:1: → 23)
+    lineno=$(echo "$line" | awk -F: '{print $2}')
+    
+    # Show the offending line from the cleaned file
+    offending=$(sed -n "${lineno}p" "$tmp_cleaned")
+    echo "👉 $offending"
+    echo
+  done
+  rm "$tmp_cleaned"
   exit 1
 else
-  echo "✅ Proselint passed — no issues in $1"
+  echo "✅ Proselint passed — no issues in $file"
+  rm "$tmp_cleaned"
   exit 0
 fi
