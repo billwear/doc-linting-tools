@@ -1,0 +1,70 @@
+#!/usr/bin/python3
+#
+# gdt: get discourse topic in markdown to stdout
+# created: 26 feb 2025
+# by: bill wear
+# changelog
+# |   date   | summary of change                                      |
+# +----------+--------------------------------------------------------+
+# | 26feb25  | created gdt by scaling down discedit                   |
+# +----------+--------------------------------------------------------+
+#
+import argparse
+import glob
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import yaml
+
+from discourse_api import DiscourseAPI
+
+
+def main():
+    # parse args and reject malformed command lines, with usage message
+    parser, args = parse_args()
+    if not args.topic_number:
+        parser.print_usage()
+        sys.exit(1)
+
+    # read the config file, erroring out in function if there's a problem
+    config = read_config()
+
+    # connect with Discourse server or error out if not possible
+    api = DiscourseAPI(config)
+
+    # get the markdown for this topic in Discourse & print it to stdout
+    discourse_md = api.get_markdown(args.topic_number)
+    print( discourse_md )
+    
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="gtd - get topic from discourse"
+    )
+    parser.add_argument(
+        "topic_number", type=int, help="topic number to retrieve"
+    )
+    parser.add_argument("-d", action="store_true", help="print debug output")
+    return parser, parser.parse_args()
+
+
+def read_config():
+    home = os.path.expanduser("~")
+    config_path = os.path.join(home, ".config", "disced.conf")
+
+    if not os.path.exists(config_path):
+        sys.exit(f"discedit: config file {config_path} not found.")
+
+    with open(config_path, "r") as f:
+        try:
+            config = yaml.safe_load(f)
+            return config
+        except yaml.YAMLError as e:
+            sys.exit(f"discedit: error parsing YAML config file: {e}")
+
+
+if __name__ == "__main__":
+    main()
