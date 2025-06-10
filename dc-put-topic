@@ -1,46 +1,49 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # ptd: put topic to discourse
-# created: 26 feb 25
+# updated: 06 jun 25
 # by: bill wear
-# changelog
-# |   date   | summary of change                                      |
-# +----------+--------------------------------------------------------+
-# | 26feb25  | created first version                                  |
-# +----------+--------------------------------------------------------+
-#
+
 import argparse
 import glob
 import os
-import re
-import shutil
-import subprocess
 import sys
-import tempfile
-import time
 import yaml
 
 from discourse_api import DiscourseAPI
 
 
 def main():
-    # parse args and reject malformed command lines, with usage message
     parser, args = parse_args()
     if not args.topic_number:
         parser.print_usage()
         sys.exit(1)
 
-    # read the config file, erroring out in function if there's a problem
     config = read_config()
-
-    # instantiate an api connection
     api = DiscourseAPI(config)
 
-    # read in stdin
-    markdown_content = sys.stdin.read()
-    
-    # publish content of the staging_file to args.topic_number
-    api.update_topic_content(args.topic_number, markdown_content)
+    topic_number = args.topic_number
+
+    # Find matching file like "*-123.md"
+    pattern = f"*-{topic_number}.md"
+    matches = glob.glob(pattern)
+
+    if not matches:
+        print(f"❌ No file found matching pattern: {pattern}")
+        sys.exit(1)
+    elif len(matches) > 1:
+        print(f"❌ Multiple files found for topic {topic_number}:")
+        for m in matches:
+            print(f"  - {m}")
+        sys.exit(1)
+
+    filename = matches[0]
+    with open(filename, "r") as f:
+        markdown_content = f.read()
+
+    # Publish content to Discourse
+    api.update_topic_content(topic_number, markdown_content)
+    print(f"✅ Updated topic {topic_number} with content from {filename}")
 
 
 def parse_args():

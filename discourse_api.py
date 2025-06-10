@@ -116,6 +116,9 @@ class DiscourseAPI:
         update_response = self.session.put(
             self.base_url + post_endpoint, json=post_data
         )
+        print("❗ update failed:", update_response.status_code)
+        print("💬 response text:", update_response.text)
+                
         update_response.raise_for_status()
         return update_response.status_code
     

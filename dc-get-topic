@@ -1,45 +1,49 @@
 #!/usr/bin/python3
 #
-# gdt: get discourse topic in markdown to stdout
-# created: 26 feb 2025
+# gdt: get discourse topic in markdown to stdout or file
+# updated: 06 jun 2025
 # by: bill wear
-# changelog
-# |   date   | summary of change                                      |
-# +----------+--------------------------------------------------------+
-# | 26feb25  | created gdt by scaling down discedit                   |
-# +----------+--------------------------------------------------------+
-#
+
 import argparse
-import glob
 import os
 import re
-import shutil
-import subprocess
 import sys
-import tempfile
-import time
 import yaml
 
 from discourse_api import DiscourseAPI
 
 
 def main():
-    # parse args and reject malformed command lines, with usage message
     parser, args = parse_args()
     if not args.topic_number:
         parser.print_usage()
         sys.exit(1)
 
-    # read the config file, erroring out in function if there's a problem
     config = read_config()
-
-    # connect with Discourse server or error out if not possible
     api = DiscourseAPI(config)
 
-    # get the markdown for this topic in Discourse & print it to stdout
-    discourse_md = api.get_markdown(args.topic_number)
-    print( discourse_md )
-    
+    topic_number = args.topic_number
+
+    # Get full topic metadata
+    topic = api.get_topic(topic_number)
+    title = topic.get("title", f"untitled-{topic_number}")
+
+    # Normalize title to a safe, dashed filename
+    safe_title = re.sub(r'[^\w\s-]', '', title)
+    safe_title = re.sub(r'\s+', '-', safe_title.strip())
+    safe_title = safe_title.lower()
+
+    filename = f"{safe_title}-{topic_number}.md"
+
+    # Get the markdown content
+    discourse_md = api.get_markdown(topic_number)
+
+    with open(filename, "w") as f:
+        f.write(discourse_md)
+
+    print(f"✅ Wrote markdown to: {filename}")
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="gtd - get topic from discourse"
