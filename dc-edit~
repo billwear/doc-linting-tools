@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# check that a topic number is entered
+if [ -z "$1" ]; then
+  echo "Usage: $0 <topic_number>"
+  exit 1
+fi
+
+# create a recognizable /tmp directory and go there
+topic_dir="/tmp/topic-$1-$(date +%s)"
+mkdir -p "$topic_dir" || { echo "❌ Failed to create directory"; exit 1; }
+cd "$topic_dir" || { echo "❌ Failed to cd into $topic_dir"; exit 1; }
+
+# get the topic from Discourse as a Launchpad-repo-matching filename
+dc-get-topic "$1"
+
+# find that filename (ends in "-$1.md")
+file_to_edit=$(find . -maxdepth 1 -type f -name "*-$1.md" | head -n 1)
+
+# bail if we didn't get a file
+if [ -z "$file_to_edit" ]; then
+  echo "❌ No file found matching '*-$1.md'"
+  exit 1
+fi
+
+# editing + linting
+echo "✍️ Editing: $file_to_edit"
+emacs "$file_to_edit"
+
+echo "🔍 Running checks..."
+
+# run linters and capture their output
+diction_out=$(diction "$file_to_edit")
+spell_out=$(dc-spell "$file_to_edit")
+link_out=$(dc-linkchecker "$file_to_edit")
+prose_out=$(dc-proselint "$file_to_edit")
+style_out=$(dc-style "$file_to_edit")
+
+# check for any output
+if [[ -z "$spell_out" && -z "$link_out" && -z "$prose_out" ]]; then
+    echo "✅ All checks passed!"
+
+    # create the necessary branch and MP, then leave the MP URL for the user to complete
+    echo "Calling gc-commit"
+    gc-commit "~/src/maas-1/docs/usr/markdown" "$file_to_edit"
+else
+    echo "⚠️  Issues detected:"
+    [[ -n "$spell_out"   ]] && echo "--- spell ---"   && echo "$spell_out"
+    [[ -n "$link_out"    ]] && echo "--- links ---"   && echo "$link_out"
+    [[ -n "$prose_out"   ]] && echo "--- proselint ---" && echo "$prose_out"
+
+fi
+

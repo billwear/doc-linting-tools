@@ -25,9 +25,8 @@ def create_branch_push(repo_path, filename):
     filename_only = os.path.basename(filename)
     epoch = str(int(time.time()))
     branch_name = f"discourse-updates-to-{filename_only.replace('.', '-').lower()}-{epoch}"
-    # Copy file in
-    dest_path = os.path.join(repo_path, filename_only)
-    shutil.copyfile(filename, dest_path)
+
+    cwd = os.getcwd()
 
     # Step into repo
     os.chdir(repo_path)
@@ -39,10 +38,17 @@ def create_branch_push(repo_path, filename):
     # Create new branch
     run(["git", "checkout", "-b", branch_name])
 
+    # Copy file in
+    src_path = os.path.join(cwd, filename_only)
+    dest_path = os.path.join(repo_path, filename_only)
+    shutil.copyfile(src_path, dest_path)
+
     # Git operations
     run(["git", "add", "."])
     run(["git", "commit", "-m", "updates from automated scan of discourse"])
-    run(["git", "push", "-u", "origin", branch_name])
+    push_output = run(["git", "push", "-u", "origin", branch_name])
+    print("🚀 Git push output:\n")
+    print(push_output)
 
     print(f"✅ Pushed branch: {branch_name}")
 

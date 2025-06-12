@@ -27,14 +27,11 @@ link_output=$(linkchecker "$html_tmp" --no-status --check-extern)
 # Clean up temp file
 rm "$html_tmp"
 
-# Show raw output (optional: comment out if too noisy)
-# echo "$link_output"
-
 # Extract redirects
-redirects=$(awk '/\[http-redirected\]/, /status: [0-9]+ \./' "$link_output")
+redirects=$(echo "$link_output" | awk '/\[http-redirected\]/, /status: [0-9]+ \./')
 
 # Extract errors
-errors=$(grep 'Result *Error' "$link_output" || true)
+errors=$(echo "$link_output" | grep -E 'Result *Error' || true)
 
 # Summarize
 if [ -n "$redirects" ]; then
@@ -53,5 +50,3 @@ else
   echo "✅ All links are valid."
   exit 0
 fi
-
-
